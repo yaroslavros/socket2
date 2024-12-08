@@ -1254,6 +1254,40 @@ impl Socket {
         }
     }
 
+    /// Get the value of the `IP_RECVORIGDSTADDR` option on this socket.
+    ///
+    /// For more information about this option, see [`set_ip_recvorigdstaddr`].
+    ///
+    /// [`set_ip_transparent`]: Socket::set_ip_transparent
+    #[cfg(all(feature = "all", target_os = "linux"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", target_os = "linux"))))]
+    pub fn ip_recvorigdstaddr(&self) -> io::Result<bool> {
+        unsafe {
+            getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IP, libc::IP_RECVORIGDSTADDR)
+                .map(|recvorigdstaddr| recvorigdstaddr != 0)
+        }
+    }
+
+    /// Set the value of the `IP_RECVORIGDSTADDR` option on this socket.
+    ///
+    /// Setting this boolean option enables signalign of original
+    /// destination address in csmg structure of recvmsg.  NOTE: this
+    /// socket to be configured as transparent. This is not supported on
+    /// stream sockets. Enabling this socket option requires
+    /// superuser privileges (the `CAP_NET_ADMIN` capability).
+    #[cfg(all(feature = "all", target_os = "linux"))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", target_os = "linux"))))]
+    pub fn set_ip_recvorigdstaddr(&self, recvorigdstaddr: bool) -> io::Result<()> {
+        unsafe {
+            setsockopt(
+                self.as_raw(),
+                sys::IPPROTO_IP,
+                libc::IP_RECVORIGDSTADDR,
+                recvorigdstaddr as c_int,
+            )
+        }
+    }
+    
     /// Join a multicast group using `IP_ADD_MEMBERSHIP` option on this socket.
     ///
     /// This function specifies a new multicast group for this socket to join.
